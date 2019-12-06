@@ -1,0 +1,7 @@
+bla2.wav 0.0 0.1 p
+bla2.wav 0.1 0.1 k
+bla2.wav 0.1 0.1 b
+bla2.wav 0.1 0.1 a
+bla2.wav 0.1 0.1 i
+bla2.wav 0.1 0.1 l
+bla2.wav 0.1 0.1 b

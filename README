@@ -1,0 +1,16 @@
+File specification:
+
+target.txt - target phoneme sequence
+predicted.txt - predicted phoneme sequence to be aligned with target.txt
+dist.csv - Matrix containing phoneme distance (French language)
+phonemes.txt - file containing the indexes of all phonemes for the phoneme
+		distance matrix.
+Both target and predicted sequence files are stored in kaldi format, specific
+for phoneme alignment.
+
+Input:
+$python dtw_phoneme.py <target.txt> <predicted.txt> <phonemes.txt> <dist.csv>
+
+Output: 
+	- Similarity score
+	- DTW plot between the two sequences
