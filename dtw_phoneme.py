@@ -11,7 +11,7 @@ import seaborn as sns
 import sys
 import csv
 
-def distance_cost_plot(distances,target,predicted,x_path,y_path):
+def distance_cost_plot(distances,target,predicted,x_path,y_path, similarity):
     im = plt.imshow(distances, interpolation='nearest', cmap='Reds')    
     plt.gca().invert_yaxis()
     tick_marks_x = np.arange(len(target))
@@ -21,6 +21,7 @@ def distance_cost_plot(distances,target,predicted,x_path,y_path):
     plt.xlabel('Predicted')
     plt.ylabel('Target')   
     plt.colorbar()
+    plt.title('Similarity level: {0:.3f}'.format(similarity))
     plt.plot(x_path,y_path)
     plt.savefig('dtw_align.png')
     plt.show()
@@ -56,11 +57,28 @@ def ret_ind(char,file3):
 	print("Character not recnognized!")
 	sys.exit()
 
+
+
+def misclass_identifier(path, accum_cost, pred, targ):
+	curr_val = 0
+	path = path[::-1]
+	path.remove([0,0])
+	for a in path:
+		if accum_cost[a[0],a[1]] > curr_val:
+			#print(a[0],a[1])
+			curr_val = accum_cost[a[0],a[1]]
+			print("Phoneme /{}/".format(targ[a[0]]),"Misclassified as: /{}/".format(pred[a[1]]))
+			
+		
+
+
 def backtracking(x,y,accum_cost):
 	path = [[len(x)-1, len(y)-1]]
 	i = len(x)-1
 	j = len(y)-1
 	dist = 0
+	misclass_vector = []
+	curr_val = 0
 	while i>0 and j>0:
 		if i==0:
 			j=j-1
@@ -74,8 +92,8 @@ def backtracking(x,y,accum_cost):
 			else:
 				j=j-1
 				i=i-1
-		path.append([i,j])
-	#path.append([0,0])
+		path.append([i,j])		
+	path.append([0,0])
 	return path
 		
 def accum_cost(x,y,distance_matrix):
@@ -115,24 +133,31 @@ if __name__=="__main__":
 	dist_mat = np.zeros((len(target),len(predicted)))
 	for i in range(len(target)):
 		for j in range(len(predicted)):
-			dist_mat[i,j] = total_dist[ret_ind(target[i],sys.argv[3]),ret_ind(predicted[j],sys.argv[3])]**2
+			dist_mat[i,j] = total_dist[ret_ind(target[i],sys.argv[3]),ret_ind(predicted[j],sys.argv[3])]#**2
+	
+	
 	
 	# Compute the accumulated cost of all paths
 	accumulated_cost = accum_cost(target,predicted,dist_mat)
+	
 	
 	# Backtracks the accumulated cost matrix in a greedy-search way
 	path = backtracking(target,predicted,accumulated_cost)
 	path_pred = [point[0] for point in path]
 	path_targ = [point[1] for point in path]
 	
-	distance_cost_plot(accumulated_cost,target,predicted,path_targ,path_pred)
-	
 	total_distance = 0
 	for i in range(len(path)):
 		total_distance += accumulated_cost[path_pred[i],path_targ[i]]
+		#print(total_distance)
 	
 	# Similarity score computation
 	similarity_score = 1/(1+np.sqrt(total_distance))
 	print('Similarity score between the two sequences: {0:.3f}'.format(similarity_score))
 	
+	# Plots the DTW alignment with the path with minimal cost
+	distance_cost_plot(accumulated_cost,target,predicted,path_targ,path_pred, similarity_score)
+	
+	# Identifies Misclassified Phonemes
+	misclass_identifier(path,accumulated_cost,predicted,target)
 
